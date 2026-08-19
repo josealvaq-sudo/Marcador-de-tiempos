@@ -3,42 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Control de Tiempos</title>
+  <title>Control Laboral y Descansos</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
     body { background-color: #121214; color: #f0f0f5; display: flex; justify-content: center; min-height: 100vh; padding: 16px; }
-    .container { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 16px; }
+    .container { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 14px; }
     
-    .card-clock, .card-timer, .card-log {
-      background: #1e1e24; border-radius: 16px; padding: 16px; text-align: center; border: 1px solid #2e2e38;
-    }
-    .current-time { font-size: 2.4rem; font-weight: 700; color: #4da6ff; font-variant-numeric: tabular-nums; }
+    .card { background: #1e1e24; border-radius: 16px; padding: 16px; text-align: center; border: 1px solid #2e2e38; }
+    .current-time { font-size: 2.3rem; font-weight: 700; color: #4da6ff; font-variant-numeric: tabular-nums; }
     .current-date { font-size: 0.85rem; color: #8c8c99; margin-top: 4px; text-transform: capitalize; }
     
-    .timer-label { font-size: 1rem; color: #a1a1aa; font-weight: 600; text-transform: uppercase; }
-    .timer-remaining { font-size: 3rem; font-weight: 800; color: #22c55e; margin: 8px 0; font-variant-numeric: tabular-nums; }
+    /* Cronómetro */
+    .timer-label { font-size: 0.95rem; color: #a1a1aa; font-weight: 600; text-transform: uppercase; }
+    .timer-remaining { font-size: 2.8rem; font-weight: 800; color: #22c55e; margin: 6px 0; font-variant-numeric: tabular-nums; }
     .timer-remaining.warning { color: #f59e0b; }
     .timer-remaining.danger { color: #ef4444; }
 
-    .progress-track { width: 100%; height: 12px; background: #2a2a35; border-radius: 6px; overflow: hidden; margin-bottom: 12px; }
-    .progress-bar { height: 100%; width: 100%; background: #22c55e; border-radius: 6px; transition: width 0.3s ease; }
+    .progress-track { width: 100%; height: 10px; background: #2a2a35; border-radius: 5px; overflow: hidden; margin-bottom: 10px; }
+    .progress-bar { height: 100%; width: 100%; background: #22c55e; border-radius: 5px; transition: width 0.3s ease; }
     .progress-bar.warning { background: #f59e0b; }
     .progress-bar.danger { background: #ef4444; }
 
-    .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    /* Botones de acción */
+    .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .btn-full { grid-column: span 2; }
     .btn {
-      padding: 14px 16px; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 600; cursor: pointer;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+      padding: 12px 14px; border: none; border-radius: 12px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
     }
     .btn-coffee { background: #d97706; color: #fff; }
     .btn-lunch { background: #2563eb; color: #fff; }
     .btn-return { background: #16a34a; color: #fff; }
-    .btn-test { background: #4b5563; color: #e5e7eb; font-size: 0.8rem; padding: 8px; }
+    .btn-test { background: #374151; color: #9ca3af; font-size: 0.75rem; padding: 6px; }
     .btn:disabled { background: #27272a; color: #52525b; cursor: not-allowed; }
 
-    .log-list { display: flex; flex-direction: column; gap: 8px; max-height: 160px; overflow-y: auto; text-align: left; margin-top: 10px; }
-    .log-item { background: #16161a; padding: 10px 12px; border-radius: 8px; font-size: 0.8rem; display: flex; justify-content: space-between; border-left: 4px solid #2563eb; }
+    /* Horarios fijos del día */
+    .schedule-box { text-align: left; background: #16161a; border-radius: 10px; padding: 12px; margin-top: 4px; font-size: 0.8rem; }
+    .schedule-title { font-weight: 600; color: #a1a1aa; margin-bottom: 8px; font-size: 0.85rem; }
+    .schedule-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #27272a; }
+    .schedule-item:last-child { border-bottom: none; }
+    .schedule-time { font-weight: 700; color: #38bdf8; font-variant-numeric: tabular-nums; }
+
+    .log-list { display: flex; flex-direction: column; gap: 8px; max-height: 140px; overflow-y: auto; text-align: left; margin-top: 8px; }
+    .log-item { background: #16161a; padding: 8px 12px; border-radius: 8px; font-size: 0.75rem; display: flex; justify-content: space-between; border-left: 4px solid #2563eb; }
     .log-item.coffee { border-left-color: #d97706; }
   </style>
 </head>
@@ -46,45 +53,59 @@
 
   <div class="container">
     
-    <div class="card-clock">
+    <!-- 1. Reloj en vivo -->
+    <div class="card">
       <div class="current-time" id="clock">00:00:00</div>
       <div class="current-date" id="date">--</div>
     </div>
 
-    <div class="card-timer">
+    <!-- 2. Cronómetro de descansos activos -->
+    <div class="card">
       <div class="timer-label" id="timerTitle">Sin actividad</div>
       <div class="timer-remaining" id="timeRemaining">00:00</div>
       <div class="progress-track"><div class="progress-bar" id="progressBar" style="width: 0%;"></div></div>
-      <div style="font-size: 0.85rem; color: #71717a;" id="timeDetail">Presiona un botón para iniciar</div>
+      <div style="font-size: 0.8rem; color: #71717a;" id="timeDetail">Presiona un botón para iniciar descanso</div>
     </div>
 
+    <!-- 3. Botones de descansos -->
     <div class="actions-grid">
       <button class="btn btn-coffee" id="btnMorning" onclick="startBreak('Café Mañana', 15, 5)">
-        ☕ Café Mañana <span style="font-size: 0.75rem;">15 min</span>
+        ☕ Café Mañana <span style="font-size: 0.75rem;">15 min (8-9 AM)</span>
       </button>
 
       <button class="btn btn-coffee" id="btnAfternoon" onclick="startBreak('Café Tarde', 15, 5)">
-        ☕ Café Tarde <span style="font-size: 0.75rem;">15 min</span>
+        ☕ Café Tarde <span style="font-size: 0.75rem;">15 min (3-4 PM)</span>
       </button>
 
       <button class="btn btn-lunch btn-full" id="btnLunch" onclick="startBreak('Almuerzo', 30, 5)">
-        🍲 Almuerzo <span style="font-size: 0.75rem;">30 min</span>
+        🍲 Almuerzo <span style="font-size: 0.75rem;">30 min (12:00 - 1:30 PM)</span>
       </button>
 
       <button class="btn btn-return btn-full" id="btnReturn" onclick="endBreak()" disabled>
         ✅ Marcar Regreso
       </button>
+    </div>
 
-      <!-- Botón de prueba rápida para verificar sonido/notificación -->
-      <button class="btn btn-test btn-full" onclick="startBreak('Prueba Rápida', 0.25, 0.1)">
-        🧪 Probar Alarma (15 seg totales, alerta a los 9 seg)
+    <!-- 4. Resumen de Franjas y Alertas Diarias -->
+    <div class="card">
+      <div class="schedule-title">⏰ Horarios de Jornada y Alertas (Aviso 5 min antes)</div>
+      <div class="schedule-box">
+        <div class="schedule-item"><span>Entrada Laboral</span><span class="schedule-time">8:00 AM</span></div>
+        <div class="schedule-item"><span>Franja Café Mañana</span><span class="schedule-time">8:00 AM - 9:00 AM</span></div>
+        <div class="schedule-item"><span>Franja Almuerzo</span><span class="schedule-time">12:00 MD - 1:30 PM</span></div>
+        <div class="schedule-item"><span>Franja Café Tarde</span><span class="schedule-time">3:00 PM - 4:00 PM</span></div>
+        <div class="schedule-item"><span>Salida Laboral</span><span class="schedule-time">5:30 PM</span></div>
+      </div>
+      <button class="btn btn-test btn-full" style="margin-top: 10px;" onclick="testAlarmNotification()">
+        🧪 Probar Audio y Notificación
       </button>
     </div>
 
-    <div class="card-log">
+    <!-- 5. Historial de marcas -->
+    <div class="card">
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size: 0.9rem; font-weight: 600; color: #a1a1aa;">Historial de hoy</span>
-        <button style="background:none; border:none; color:#71717a; cursor:pointer;" onclick="clearLogs()">Limpiar</button>
+        <span style="font-size: 0.85rem; font-weight: 600; color: #a1a1aa;">Historial de marcas de hoy</span>
+        <button style="background:none; border:none; color:#71717a; font-size: 0.75rem; cursor:pointer;" onclick="clearLogs()">Limpiar</button>
       </div>
       <div class="log-list" id="logList"></div>
     </div>
@@ -98,24 +119,29 @@
     let logs = JSON.parse(localStorage.getItem('break_logs')) || [];
     let warned = localStorage.getItem('break_warned') === 'true';
 
-    // Registrar Service Worker para notificaciones en móvil
+    // Lista de eventos fijos del día (Hora, Minuto, Mensaje, Tag único para evitar repetición en el mismo día)
+    // Se alertan exactamente 5 minutos antes de la hora estipulada
+    const SCHEDULED_EVENTS = [
+      { h: 7,  m: 55, title: '🚪 Entrada Laboral', body: 'Faltan 5 min para las 8:00 AM (Hora de entrada)', tag: 'entry_8am' },
+      { h: 8,  m: 55, title: '☕ Fin Franja Café Mañana', body: 'Faltan 5 min para las 9:00 AM (Cierre de franja de café)', tag: 'cafe_am_end' },
+      { h: 11, m: 55, title: '🍲 Inicio Franja Almuerzo', body: 'Faltan 5 min para las 12:00 MD (Apertura de almuerzo)', tag: 'lunch_start' },
+      { h: 13, m: 25, title: '🍲 Fin Franja Almuerzo', body: 'Faltan 5 min para la 1:30 PM (Cierre de franja de almuerzo)', tag: 'lunch_end' },
+      { h: 14, m: 55, title: '☕ Inicio Franja Café Tarde', body: 'Faltan 5 min para las 3:00 PM (Apertura de café tarde)', tag: 'cafe_pm_start' },
+      { h: 15, m: 55, title: '☕ Fin Franja Café Tarde', body: 'Faltan 5 min para las 4:00 PM (Cierre de franja de café)', tag: 'cafe_pm_end' },
+      { h: 17, m: 25, title: '🏁 Salida Laboral', body: 'Faltan 5 min para las 5:30 PM (Hora de salida)', tag: 'exit_530pm' }
+    ];
+
+    // Registro de SW
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').then(reg => {
-        swRegistration = reg;
-      }).catch(err => console.log('SW no registrado', err));
+      navigator.serviceWorker.register('sw.js').then(reg => swRegistration = reg).catch(e => console.log(e));
     }
 
-    // Inicializar Audio en el primer toque de pantalla
     function initAudio() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
     }
 
-    function soundAlert() {
+    function playSoundAlert() {
       initAudio();
       if (!audioCtx) return;
 
@@ -138,17 +164,56 @@
       playTone(1174, now + 0.5, 0.4);
     }
 
+    function notify(title, body, tag = 'alert') {
+      playSoundAlert();
+      if (navigator.vibrate) navigator.vibrate([400, 200, 400, 200, 800]);
+
+      if (swRegistration && swRegistration.active) {
+        swRegistration.active.postMessage({ type: 'TRIGGER_ALARM', title, body, tag });
+      }
+    }
+
+    function testAlarmNotification() {
+      initAudio();
+      if ('Notification' in window && Notification.permission !== 'granted') {
+        Notification.requestPermission();
+      }
+      notify('🧪 Prueba de Alerta', 'La alarma sonora y notificación funcionan correctamente.', 'test_alert');
+    }
+
+    // Comprobación de horario diario cada segundo
+    function checkDailySchedule() {
+      const now = new Date();
+      const currentH = now.getHours();
+      const currentM = now.getMinutes();
+      const currentS = now.getSeconds();
+      const todayDateStr = now.toDateString();
+
+      // Solo evaluamos en el segundo 00 para no duplicar
+      if (currentS !== 0) return;
+
+      SCHEDULED_EVENTS.forEach(event => {
+        if (currentH === event.h && currentM === event.m) {
+          const key = `alarm_${event.tag}_${todayDateStr}`;
+          if (!localStorage.getItem(key)) {
+            localStorage.setItem(key, 'true');
+            notify(event.title, event.body, event.tag);
+          }
+        }
+      });
+    }
+
     function updateClock() {
       const now = new Date();
       document.getElementById('clock').innerText = now.toLocaleTimeString('es-CR', { hour12: true });
       document.getElementById('date').innerText = now.toLocaleDateString('es-CR', { weekday: 'long', day: 'numeric', month: 'long' });
+      checkDailySchedule();
     }
     setInterval(updateClock, 1000);
     updateClock();
 
     function startBreak(type, minutes, warnMinutesBefore) {
       initAudio();
-
       if ('Notification' in window && Notification.permission !== 'granted') {
         Notification.requestPermission();
       }
@@ -196,23 +261,6 @@
       renderLogs();
     }
 
-    function triggerAlarm() {
-      soundAlert();
-
-      if (navigator.vibrate) {
-        navigator.vibrate([400, 200, 400, 200, 800]);
-      }
-
-      // Enviar notificación a través del Service Worker
-      if (swRegistration && swRegistration.active) {
-        swRegistration.active.postMessage({
-          type: 'TRIGGER_ALARM',
-          title: '⚠️ ¡Alerta de Tiempo!',
-          body: `Faltan 5 minutos para terminar: ${activeBreak.type}. Toca para abrir.`
-        });
-      }
-    }
-
     function renderUI() {
       const timerTitle = document.getElementById('timerTitle');
       const timeRemaining = document.getElementById('timeRemaining');
@@ -222,12 +270,12 @@
       const buttons = [document.getElementById('btnMorning'), document.getElementById('btnLunch'), document.getElementById('btnAfternoon')];
 
       if (!activeBreak) {
-        timerTitle.innerText = "Sin actividad";
+        timerTitle.innerText = "Sin descanso activo";
         timeRemaining.innerText = "00:00";
         timeRemaining.className = "timer-remaining";
         progressBar.style.width = "0%";
         progressBar.className = "progress-bar";
-        timeDetail.innerText = "Presiona un botón para iniciar";
+        timeDetail.innerText = "Presiona un botón para iniciar descanso";
         btnReturn.disabled = true;
         buttons.forEach(b => b.disabled = false);
         return;
@@ -241,13 +289,13 @@
       const totalDurationMs = activeBreak.totalMinutes * 60 * 1000;
 
       timerTitle.innerText = activeBreak.type;
-      timeDetail.innerText = `Límite: ${new Date(activeBreak.endTime).toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit', hour12: true })}`;
+      timeDetail.innerText = `Regreso límite: ${new Date(activeBreak.endTime).toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit', hour12: true })}`;
 
-      // DISPARAR ALARMA EXACTAMENTE AL LLEGAR AL UMBRAL
+      // Alerta de 5 minutos antes del descanso
       if (timeLeftMs <= activeBreak.warnBeforeMs && !warned && timeLeftMs > 0) {
         warned = true;
         localStorage.setItem('break_warned', 'true');
-        triggerAlarm();
+        notify('⚠️ ¡Fin de Descanso Próximo!', `Quedan 5 min para volver de: ${activeBreak.type}`, 'break_alert');
       }
 
       if (timeLeftMs > 0) {
@@ -278,19 +326,19 @@
     function renderLogs() {
       const logList = document.getElementById('logList');
       logList.innerHTML = logs.length === 0 
-        ? '<div style="color: #52525b; font-size: 0.8rem; text-align: center; padding: 8px;">No hay registros hoy</div>' 
+        ? '<div style="color: #52525b; font-size: 0.75rem; text-align: center; padding: 6px;">No hay registros hoy</div>' 
         : '';
 
       logs.forEach(item => {
         const div = document.createElement('div');
         div.className = `log-item ${item.type.includes('Café') ? 'coffee' : ''}`;
-        div.innerHTML = `<div><strong>${item.type}</strong><div style="color:#8c8c99; font-size:0.75rem;">${item.startStr} → ${item.endStr}</div></div><span>${item.durationMin} min</span>`;
+        div.innerHTML = `<div><strong>${item.type}</strong><div style="color:#8c8c99; font-size:0.7rem;">${item.startStr} → ${item.endStr}</div></div><span style="font-weight:600;">${item.durationMin} min</span>`;
         logList.appendChild(div);
       });
     }
 
     function clearLogs() {
-      if (confirm("¿Limpiar marcas?")) {
+      if (confirm("¿Limpiar el historial de marcas de hoy?")) {
         logs = [];
         localStorage.removeItem('break_logs');
         renderLogs();
