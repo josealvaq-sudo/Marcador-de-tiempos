@@ -3,251 +3,88 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Control de Tiempos y Marcas</title>
+  <title>Control de Tiempos</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: #121214; color: #f0f0f5; display: flex; justify-content: center; min-height: 100vh; padding: 16px; }
+    .container { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 16px; }
+    
+    .card-clock, .card-timer, .card-log {
+      background: #1e1e24; border-radius: 16px; padding: 16px; text-align: center; border: 1px solid #2e2e38;
     }
+    .current-time { font-size: 2.4rem; font-weight: 700; color: #4da6ff; font-variant-numeric: tabular-nums; }
+    .current-date { font-size: 0.85rem; color: #8c8c99; margin-top: 4px; text-transform: capitalize; }
+    
+    .timer-label { font-size: 1rem; color: #a1a1aa; font-weight: 600; text-transform: uppercase; }
+    .timer-remaining { font-size: 3rem; font-weight: 800; color: #22c55e; margin: 8px 0; font-variant-numeric: tabular-nums; }
+    .timer-remaining.warning { color: #f59e0b; }
+    .timer-remaining.danger { color: #ef4444; }
 
-    body {
-      background-color: #121214;
-      color: #f0f0f5;
-      display: flex;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 16px;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 420px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    /* Reloj actual */
-    .card-clock {
-      background: #1e1e24;
-      border-radius: 16px;
-      padding: 16px;
-      text-align: center;
-      border: 1px solid #2e2e38;
-    }
-    .current-time {
-      font-size: 2.4rem;
-      font-weight: 700;
-      color: #4da6ff;
-      font-variant-numeric: tabular-nums;
-    }
-    .current-date {
-      font-size: 0.85rem;
-      color: #8c8c99;
-      margin-top: 4px;
-      text-transform: capitalize;
-    }
-
-    /* Panel del temporizador activo */
-    .card-timer {
-      background: #1e1e24;
-      border-radius: 16px;
-      padding: 20px;
-      text-align: center;
-      border: 1px solid #2e2e38;
-    }
-    .timer-label {
-      font-size: 1rem;
-      color: #a1a1aa;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .timer-remaining {
-      font-size: 3rem;
-      font-weight: 800;
-      color: #22c55e;
-      margin: 8px 0;
-      font-variant-numeric: tabular-nums;
-    }
-    .timer-remaining.warning {
-      color: #f59e0b;
-      animation: pulse 1.5s infinite;
-    }
-    .timer-remaining.danger {
-      color: #ef4444;
-    }
-
-    /* Barra de progreso */
-    .progress-track {
-      width: 100%;
-      height: 12px;
-      background: #2a2a35;
-      border-radius: 6px;
-      overflow: hidden;
-      margin-bottom: 12px;
-    }
-    .progress-bar {
-      height: 100%;
-      width: 100%;
-      background: #22c55e;
-      border-radius: 6px;
-      transition: width 0.3s ease, background-color 0.3s ease;
-    }
+    .progress-track { width: 100%; height: 12px; background: #2a2a35; border-radius: 6px; overflow: hidden; margin-bottom: 12px; }
+    .progress-bar { height: 100%; width: 100%; background: #22c55e; border-radius: 6px; transition: width 0.3s ease; }
     .progress-bar.warning { background: #f59e0b; }
     .progress-bar.danger { background: #ef4444; }
 
-    .time-detail {
-      font-size: 0.85rem;
-      color: #71717a;
-    }
-
-    /* Botones de acción */
-    .actions-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    .btn-full {
-      grid-column: span 2;
-    }
-
+    .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .btn-full { grid-column: span 2; }
     .btn {
-      padding: 14px 16px;
-      border: none;
-      border-radius: 12px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      transition: all 0.15s ease;
+      padding: 14px 16px; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
     }
-    .btn:active {
-      transform: scale(0.98);
-    }
-    .btn-sub {
-      font-size: 0.75rem;
-      font-weight: 400;
-      opacity: 0.8;
-    }
-
     .btn-coffee { background: #d97706; color: #fff; }
     .btn-lunch { background: #2563eb; color: #fff; }
     .btn-return { background: #16a34a; color: #fff; }
-    .btn:disabled {
-      background: #27272a;
-      color: #52525b;
-      cursor: not-allowed;
-      transform: none;
-    }
+    .btn-test { background: #4b5563; color: #e5e7eb; font-size: 0.8rem; padding: 8px; }
+    .btn:disabled { background: #27272a; color: #52525b; cursor: not-allowed; }
 
-    /* Historial / Registros */
-    .card-log {
-      background: #1e1e24;
-      border-radius: 16px;
-      padding: 16px;
-      border: 1px solid #2e2e38;
-      flex-grow: 1;
-    }
-    .log-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    .log-title {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #a1a1aa;
-    }
-    .btn-clear {
-      background: transparent;
-      border: none;
-      color: #71717a;
-      font-size: 0.75rem;
-      cursor: pointer;
-    }
-    .log-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 180px;
-      overflow-y: auto;
-    }
-    .log-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #16161a;
-      padding: 10px 12px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      border-left: 4px solid #3b82f6;
-    }
+    .log-list { display: flex; flex-direction: column; gap: 8px; max-height: 160px; overflow-y: auto; text-align: left; margin-top: 10px; }
+    .log-item { background: #16161a; padding: 10px 12px; border-radius: 8px; font-size: 0.8rem; display: flex; justify-content: space-between; border-left: 4px solid #2563eb; }
     .log-item.coffee { border-left-color: #d97706; }
-    .log-item.lunch { border-left-color: #2563eb; }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
   </style>
 </head>
 <body>
 
   <div class="container">
     
-    <!-- 1. Reloj en tiempo real -->
     <div class="card-clock">
       <div class="current-time" id="clock">00:00:00</div>
-      <div class="current-date" id="date">Cargando fecha...</div>
+      <div class="current-date" id="date">--</div>
     </div>
 
-    <!-- 2. Temporizador y barra de progreso -->
     <div class="card-timer">
-      <div class="timer-label" id="timerTitle">Sin actividad activa</div>
+      <div class="timer-label" id="timerTitle">Sin actividad</div>
       <div class="timer-remaining" id="timeRemaining">00:00</div>
-      
-      <div class="progress-track">
-        <div class="progress-bar" id="progressBar" style="width: 0%;"></div>
-      </div>
-      
-      <div class="time-detail" id="timeDetail">Presiona un botón para iniciar</div>
+      <div class="progress-track"><div class="progress-bar" id="progressBar" style="width: 0%;"></div></div>
+      <div style="font-size: 0.85rem; color: #71717a;" id="timeDetail">Presiona un botón para iniciar</div>
     </div>
 
-    <!-- 3. Controles de inicio y regreso -->
     <div class="actions-grid">
-      <button class="btn btn-coffee" id="btnMorning" onclick="startBreak('Café Mañana', 15)">
-        ☕ Café Mañana
-        <span class="btn-sub">15 min</span>
+      <button class="btn btn-coffee" id="btnMorning" onclick="startBreak('Café Mañana', 15, 5)">
+        ☕ Café Mañana <span style="font-size: 0.75rem;">15 min</span>
       </button>
 
-      <button class="btn btn-coffee" id="btnAfternoon" onclick="startBreak('Café Tarde', 15)">
-        ☕ Café Tarde
-        <span class="btn-sub">15 min</span>
+      <button class="btn btn-coffee" id="btnAfternoon" onclick="startBreak('Café Tarde', 15, 5)">
+        ☕ Café Tarde <span style="font-size: 0.75rem;">15 min</span>
       </button>
 
-      <button class="btn btn-lunch btn-full" id="btnLunch" onclick="startBreak('Almuerzo', 30)">
-        🍲 Almuerzo
-        <span class="btn-sub">30 min</span>
+      <button class="btn btn-lunch btn-full" id="btnLunch" onclick="startBreak('Almuerzo', 30, 5)">
+        🍲 Almuerzo <span style="font-size: 0.75rem;">30 min</span>
       </button>
 
       <button class="btn btn-return btn-full" id="btnReturn" onclick="endBreak()" disabled>
         ✅ Marcar Regreso
       </button>
+
+      <!-- Botón de prueba rápida para verificar sonido/notificación -->
+      <button class="btn btn-test btn-full" onclick="startBreak('Prueba Rápida', 0.25, 0.1)">
+        🧪 Probar Alarma (15 seg totales, alerta a los 9 seg)
+      </button>
     </div>
 
-    <!-- 4. Registro de marcas del día -->
     <div class="card-log">
-      <div class="log-header">
-        <span class="log-title">Historial de marcas de hoy</span>
-        <button class="btn-clear" onclick="clearLogs()">Limpiar</button>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.9rem; font-weight: 600; color: #a1a1aa;">Historial de hoy</span>
+        <button style="background:none; border:none; color:#71717a; cursor:pointer;" onclick="clearLogs()">Limpiar</button>
       </div>
       <div class="log-list" id="logList"></div>
     </div>
@@ -255,131 +92,142 @@
   </div>
 
   <script>
+    let swRegistration = null;
+    let audioCtx = null;
     let activeBreak = JSON.parse(localStorage.getItem('active_break')) || null;
     let logs = JSON.parse(localStorage.getItem('break_logs')) || [];
-    let warned5Min = localStorage.getItem('warned_5min') === 'true';
+    let warned = localStorage.getItem('break_warned') === 'true';
 
-    // --- Solicitar permiso de notificaciones ---
-    function checkNotificationPermission() {
-      if ("Notification" in window && Notification.permission === "default") {
-        Notification.requestPermission();
+    // Registrar Service Worker para notificaciones en móvil
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').then(reg => {
+        swRegistration = reg;
+      }).catch(err => console.log('SW no registrado', err));
+    }
+
+    // Inicializar Audio en el primer toque de pantalla
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
       }
     }
 
-    // --- Sonido usando Web Audio API ---
-    function playBeep(freq = 880, duration = 0.25, count = 2) {
-      try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const ctx = new AudioContext();
-        
-        let play = (i) => {
-          if (i >= count) return;
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.value = freq;
-          
-          gain.gain.setValueAtTime(0.15, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-          
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          
-          osc.start();
-          osc.stop(ctx.currentTime + duration);
-          setTimeout(() => play(i + 1), (duration * 1000) + 120);
-        };
-        play(0);
-      } catch (e) {
-        console.error("Audio no soportado:", e);
-      }
+    function soundAlert() {
+      initAudio();
+      if (!audioCtx) return;
+
+      const playTone = (freq, time, dur) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(freq, time);
+        gain.gain.setValueAtTime(0.2, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(time);
+        osc.stop(time + dur);
+      };
+
+      const now = audioCtx.currentTime;
+      playTone(880, now, 0.2);
+      playTone(880, now + 0.25, 0.2);
+      playTone(1174, now + 0.5, 0.4);
     }
 
-    // --- Reloj en vivo ---
     function updateClock() {
       const now = new Date();
       document.getElementById('clock').innerText = now.toLocaleTimeString('es-CR', { hour12: true });
-      document.getElementById('date').innerText = now.toLocaleDateString('es-CR', { 
-        weekday: 'long', 
-        day: 'numeric', 
-        month: 'long' 
-      });
+      document.getElementById('date').innerText = now.toLocaleDateString('es-CR', { weekday: 'long', day: 'numeric', month: 'long' });
     }
     setInterval(updateClock, 1000);
     updateClock();
 
-    // --- Iniciar descanso ---
-    function startBreak(type, minutes) {
-      checkNotificationPermission();
+    function startBreak(type, minutes, warnMinutesBefore) {
+      initAudio();
+
+      if ('Notification' in window && Notification.permission !== 'granted') {
+        Notification.requestPermission();
+      }
 
       const now = Date.now();
       const durationMs = minutes * 60 * 1000;
-      
+      const warnMs = warnMinutesBefore * 60 * 1000;
+
       activeBreak = {
         type: type,
         totalMinutes: minutes,
+        warnBeforeMs: warnMs,
         startTime: now,
         endTime: now + durationMs
       };
-      
-      warned5Min = false;
-      localStorage.setItem('warned_5min', 'false');
+
+      warned = false;
+      localStorage.setItem('break_warned', 'false');
       localStorage.setItem('active_break', JSON.stringify(activeBreak));
       
-      playBeep(600, 0.15, 1);
       renderUI();
     }
 
-    // --- Finalizar / Regreso ---
     function endBreak() {
       if (!activeBreak) return;
       
       const now = Date.now();
       const startD = new Date(activeBreak.startTime);
       const endD = new Date(now);
-      
-      const formatTime = (d) => d.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit', hour12: true });
-      
-      const logEntry = {
+      const formatTime = d => d.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+      logs.unshift({
         type: activeBreak.type,
         startStr: formatTime(startD),
         endStr: formatTime(endD),
-        durationMin: Math.round((now - activeBreak.startTime) / 60000)
-      };
+        durationMin: Math.max(1, Math.round((now - activeBreak.startTime) / 60000))
+      });
 
-      logs.unshift(logEntry);
       localStorage.setItem('break_logs', JSON.stringify(logs));
-
       activeBreak = null;
       localStorage.removeItem('active_break');
-      localStorage.removeItem('warned_5min');
-      
-      playBeep(1000, 0.2, 2);
+      localStorage.removeItem('break_warned');
+
       renderUI();
       renderLogs();
     }
 
-    // --- Actualizar Interfaz y Lanzar Alarmas ---
+    function triggerAlarm() {
+      soundAlert();
+
+      if (navigator.vibrate) {
+        navigator.vibrate([400, 200, 400, 200, 800]);
+      }
+
+      // Enviar notificación a través del Service Worker
+      if (swRegistration && swRegistration.active) {
+        swRegistration.active.postMessage({
+          type: 'TRIGGER_ALARM',
+          title: '⚠️ ¡Alerta de Tiempo!',
+          body: `Faltan 5 minutos para terminar: ${activeBreak.type}. Toca para abrir.`
+        });
+      }
+    }
+
     function renderUI() {
       const timerTitle = document.getElementById('timerTitle');
       const timeRemaining = document.getElementById('timeRemaining');
       const progressBar = document.getElementById('progressBar');
       const timeDetail = document.getElementById('timeDetail');
       const btnReturn = document.getElementById('btnReturn');
-      
-      const buttons = [
-        document.getElementById('btnMorning'),
-        document.getElementById('btnLunch'),
-        document.getElementById('btnAfternoon')
-      ];
+      const buttons = [document.getElementById('btnMorning'), document.getElementById('btnLunch'), document.getElementById('btnAfternoon')];
 
       if (!activeBreak) {
-        timerTitle.innerText = "Sin actividad activa";
+        timerTitle.innerText = "Sin actividad";
         timeRemaining.innerText = "00:00";
         timeRemaining.className = "timer-remaining";
         progressBar.style.width = "0%";
         progressBar.className = "progress-bar";
-        timeDetail.innerText = "Selecciona un turno para iniciar";
+        timeDetail.innerText = "Presiona un botón para iniciar";
         btnReturn.disabled = true;
         buttons.forEach(b => b.disabled = false);
         return;
@@ -391,45 +239,25 @@
       const now = Date.now();
       const timeLeftMs = activeBreak.endTime - now;
       const totalDurationMs = activeBreak.totalMinutes * 60 * 1000;
-      
-      const startDate = new Date(activeBreak.startTime).toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit', hour12: true });
-      const endDate = new Date(activeBreak.endTime).toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit', hour12: true });
 
       timerTitle.innerText = activeBreak.type;
-      timeDetail.innerText = `Salida: ${startDate} | Límite: ${endDate}`;
+      timeDetail.innerText = `Límite: ${new Date(activeBreak.endTime).toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit', hour12: true })}`;
+
+      // DISPARAR ALARMA EXACTAMENTE AL LLEGAR AL UMBRAL
+      if (timeLeftMs <= activeBreak.warnBeforeMs && !warned && timeLeftMs > 0) {
+        warned = true;
+        localStorage.setItem('break_warned', 'true');
+        triggerAlarm();
+      }
 
       if (timeLeftMs > 0) {
         const totalSec = Math.ceil(timeLeftMs / 1000);
         const m = String(Math.floor(totalSec / 60)).padStart(2, '0');
         const s = String(totalSec % 60).padStart(2, '0');
         timeRemaining.innerText = `${m}:${s}`;
+        progressBar.style.width = `${Math.max(0, (timeLeftMs / totalDurationMs) * 100)}%`;
 
-        const percentage = Math.max(0, (timeLeftMs / totalDurationMs) * 100);
-        progressBar.style.width = `${percentage}%`;
-
-        // Alerta de 5 minutos (300 segundos)
-        if (totalSec <= 300 && !warned5Min) {
-          warned5Min = true;
-          localStorage.setItem('warned_5min', 'true');
-          
-          playBeep(880, 0.3, 3);
-          if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
-
-          // Notificación del sistema que trae la página al frente
-          if ("Notification" in window && Notification.permission === "granted") {
-            const notif = new Notification("⚠️ Tiempo por vencer", {
-              body: `Quedan 5 minutos para finalizar tu ${activeBreak.type}. Toca aquí para regresar.`,
-              requireInteraction: true
-            });
-
-            notif.onclick = function() {
-              window.focus();
-              this.close();
-            };
-          }
-        }
-
-        if (totalSec <= 300) {
+        if (timeLeftMs <= activeBreak.warnBeforeMs) {
           timeRemaining.className = "timer-remaining warning";
           progressBar.className = "progress-bar warning";
         } else {
@@ -447,33 +275,22 @@
       }
     }
 
-    // --- Renderizar Historial ---
     function renderLogs() {
       const logList = document.getElementById('logList');
-      logList.innerHTML = '';
-
-      if (logs.length === 0) {
-        logList.innerHTML = '<div style="color: #52525b; font-size: 0.8rem; text-align: center; padding: 8px;">No hay registros hoy</div>';
-        return;
-      }
+      logList.innerHTML = logs.length === 0 
+        ? '<div style="color: #52525b; font-size: 0.8rem; text-align: center; padding: 8px;">No hay registros hoy</div>' 
+        : '';
 
       logs.forEach(item => {
         const div = document.createElement('div');
-        const isCoffee = item.type.includes('Café');
-        div.className = `log-item ${isCoffee ? 'coffee' : 'lunch'}`;
-        div.innerHTML = `
-          <div>
-            <strong>${item.type}</strong>
-            <div style="color: #8c8c99; font-size: 0.75rem;">${item.startStr} → ${item.endStr}</div>
-          </div>
-          <span style="font-weight: 600;">${item.durationMin} min</span>
-        `;
+        div.className = `log-item ${item.type.includes('Café') ? 'coffee' : ''}`;
+        div.innerHTML = `<div><strong>${item.type}</strong><div style="color:#8c8c99; font-size:0.75rem;">${item.startStr} → ${item.endStr}</div></div><span>${item.durationMin} min</span>`;
         logList.appendChild(div);
       });
     }
 
     function clearLogs() {
-      if (confirm("¿Deseas borrar el historial de hoy?")) {
+      if (confirm("¿Limpiar marcas?")) {
         logs = [];
         localStorage.removeItem('break_logs');
         renderLogs();
